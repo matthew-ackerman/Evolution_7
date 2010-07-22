@@ -11,6 +11,19 @@
 #include "tensor.h"
 #endif
 
+
+#ifdef USE_EVO7_DEFS
+
+#define _number_of_arguments	6
+#define _number_of_alleles	0
+#define	_dominance		1
+#define	_selection_coefficient	2
+#define	_mutation_rate		3
+#define	_mutator_effect		4
+#define	_user_argument		5
+
+#endif
+
 using namespace std;
 
 class functor{
@@ -393,7 +406,7 @@ ifstream &operator>>(ifstream &stream, locus &l){
 	return stream; // must return stream
 };
 
-void make_selection_tensor (tensor *p, vector <locus*> loci, double (*epistatic_function) (double, double) ) {	
+void make_selection_tensor (tensor <double> *p, vector <locus*> loci, double (*epistatic_function) (double, double) ) {	
 	unsigned int number_of_loci=loci.size();
 	INDEX hap_index (number_of_loci), dip_index (number_of_loci*2);
 	for(int x=0; x<number_of_loci;x++) {
@@ -403,7 +416,7 @@ void make_selection_tensor (tensor *p, vector <locus*> loci, double (*epistatic_
 	}
 	hap_index.make_step_array();
 	
-	tensor t(&dip_index);
+	tensor <double> t(&dip_index);
 
 	unsigned int number_of_genotypes=hap_index.step[hap_index.D];
 
@@ -429,7 +442,7 @@ void make_selection_tensor (tensor *p, vector <locus*> loci, double (*epistatic_
 	*p=t;
 };
 
-void make_mutation_tensor (tensor *p, vector <locus*> loci, double (*epistatic_function) (double, double) ) {
+void make_mutation_tensor (tensor <double> *p, vector <locus*> loci, double (*epistatic_function) (double, double) ) {
 	unsigned int number_of_loci=loci.size();
 	INDEX hap_index (number_of_loci), dip_index (number_of_loci*2);
 	for(int x=0; x<number_of_loci;x++) {
@@ -438,10 +451,9 @@ void make_mutation_tensor (tensor *p, vector <locus*> loci, double (*epistatic_f
 		dip_index[x+number_of_loci]=loci[x]->number_of_alleles;
 	}
 	dip_index.make_step_array();
-	//cout << dip_index.print();
 	hap_index.make_step_array();
 	
-	tensor t(&dip_index);
+	tensor <double> t(&dip_index);
 
 	unsigned int number_of_genotypes=hap_index.step[hap_index.D];
 
@@ -449,8 +461,6 @@ void make_mutation_tensor (tensor *p, vector <locus*> loci, double (*epistatic_f
 	INDEX hap1(0), hap2(0);
 	hap2=hap_index;
 	hap1=hap_index; 
-
-	//cout << number_of_genotypes << endl;
 
 	for(int x=0; x<number_of_genotypes;x++) {
 
@@ -460,11 +470,9 @@ void make_mutation_tensor (tensor *p, vector <locus*> loci, double (*epistatic_f
 			hap2.setFromOffset(y);
 
 			kicker=loci[0]->mutation_kicker[hap1[0]][hap2[0]];
-		//	cout << hap1.print() << hap2.print() << "x: " << x << " y: " << y << " z: " << 0 << " " << kicker << endl;
 			for(int z=1;z<number_of_loci;z++){
 				temp=loci[z]->mutation_kicker[hap1[z]][hap2[z]];
 				kicker=epistatic_function(kicker, loci[z]->mutation_kicker[hap1[z]][hap2[z]]);
-		//		cout << "x: " << x << " y: " << y << " z: " << z << " " << kicker << " " << temp << endl;
 			}
 			t(x+y*number_of_genotypes)=kicker;
 		}
@@ -491,8 +499,8 @@ class PAIRS {
 	~PAIRS(){};
 };
 
-tensor & reduce (tensor *p, vector <vector <PAIRS> > function){
-		PRECISION *p_it, *p_end;
+tensor <double> & reduce (tensor <double> *p, vector <vector <PAIRS> > function){
+		double *p_it, *p_end;
 
 		vector < vector <PAIRS> >::iterator outer_it, start_outer, end_outer;
 	 	vector <PAIRS>::iterator inner_it, start_inner, end_inner;
@@ -625,6 +633,7 @@ class ENV_VAR{
 			records++;
 		}
 		//end=data.end();
+
 	}
 
 	void push_back(vector <double> _double, string name){

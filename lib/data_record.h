@@ -49,20 +49,30 @@ class DATA_RECORD {
 	};
 
 	void confuse(vector <double> _double){
-		if(datum.size()<=_double.size()){
-			for(int x=0; x<datum.size(); x++) {
+	//	cout << "data:" << _double.size() << " me " << datum.size() << " and " << weight.size() << endl;
+		if(datum.size()>=_double.size()){
+			//cout << "should be safe\n";
+			for(int x=0; x<_double.size(); x++) {
+	//			cout << (datum[x]*weight[x]+_double[x])/(weight[x]+1.0) << " -";
 				datum[x]=(datum[x]*weight[x]+_double[x])/(weight[x]+1.0);
 				weight[x]++;
 			}
 		}
 		else{
+			//cout << "should be safe\n";
 			for(int x=0; x<datum.size(); x++) {
+	//			cout << (datum[x]*weight[x]+_double[x])/(weight[x]+1.0) << " -";
 				datum[x]=(datum[x]*weight[x]+_double[x])/(weight[x]+1.0);
 				weight[x]++;
+			//	cout << "end " << x << endl;
 			}
+			//cout << "about to segfault\n";
 			datum.insert(datum.end(),_double.begin()+datum.size(), _double.end());
-			weight.insert(weight.end(),_double.size()-datum.size(), 1.0);
+			//for(int x=weight.size(); x<_double.size();x++) cout << _double[x] << " *";
+			weight.insert(weight.end(), (unsigned int)(_double.size()-weight.size()), 1.0);
+			//cout << "totally didn't happen\n";
 		}
+	//	cout << endl;
 	};
 
 	void confuse(double *_double, unsigned int size){
@@ -105,6 +115,7 @@ class DATA_RECORD {
 
 		unsigned int size=datum.size();
 		fwrite(&size, sizeof(unsigned int), 1, pFile);
+
 		//TODO: write much better error check;
 		size%=13;
 		fwrite(&size, sizeof(unsigned int), 1, pFile);
@@ -140,20 +151,31 @@ class DATA_RECORD {
 		}
 		//else throw std::runtime_error( "Data appears to be corrupt, or reading out of frame.\n");
 	}
+
 	void print_to_csv(FILE * pFile){
 		//if (!pFile) throw std::runtime_error( "Could not write file!" );  // don't halt your program, just complain
  
 		if (datum.size()!=weight.size()) {cout << "Data corrupt.\n"; exit(0);}
 		if (datum.size()==0||weight.size()==0) {cout << "Data empty.\n"; exit(0);}
 
-		fprintf (pFile, "%f", datum[0]);
 
+		fprintf (pFile, "\'%s value: \', %f", name.c_str(), datum[0]);
 		for(int y=1;y<datum.size();y++){
 			fprintf (pFile, ",%f", datum[y]);
 		}
-		fprintf (pFile, "\n \'%s:\', %f", name.c_str(), weight[0]);
+		fprintf (pFile, "\n\'%s weight:\', %f", name.c_str(), weight[0]);
 		for(int y=1;y<weight.size();y++){
 			fprintf (pFile, ",%f", weight[y]);
+		}
+		fprintf (pFile, "\n");
+	}
+	void print_header_to_csv(FILE * pFile){
+		if (datum.size()!=weight.size()) {cout << "Data corrupt.\n"; exit(0);}
+		if (datum.size()==0||weight.size()==0) {cout << "Data empty.\n"; exit(0);}
+
+		fprintf (pFile, "\'%s cell #: \', %d", name.c_str(), 0);
+		for(int y=1;y<datum.size();y++){
+			fprintf (pFile, ",%d", y);
 		}
 		fprintf (pFile, "\n");
 	}

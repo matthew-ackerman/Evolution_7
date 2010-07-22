@@ -385,37 +385,6 @@ class tensor
 		fclose(TensorFile);
 	}
 
-	void resize (INDEX *w){
-		
-		kill();
-
-		width=NULL;
-		cell=NULL;
-		step=NULL;
-
-		rank=(*w).D;
-
-		width=new INDEX (rank);
-
-		for(unsigned int x=0;x<rank;x++) (*width).cell[x]=(*w).cell[x];		
-
-		step = (unsigned int *) calloc ((rank+1), sizeof(unsigned int));
-		step[0]=1;
-
-		for(unsigned int x=1;x<rank+1;x++){
-			step[x]=step[x-1]*(*width).cell[x-1];
-		}
-
-		cell=new type [step[rank]];
-		begin=cell;
-		end=&cell[step[rank]];
-		size=step[rank];
-
-		clear();
-		it=begin;
-		width->make_step_array();		
-	}
-	
 	void clear (void){
 		it=begin;
 		while ((it < end)){(*it)=0; it++;}

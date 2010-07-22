@@ -1,0 +1,1 @@
+c++ -l glut -l GL -l GLU -l gsl -l gslcblas grapher.cpp
